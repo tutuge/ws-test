@@ -11,7 +11,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  */
 public class App {
     public static void main(String[] args) {
-// 一个主线程组(用于监听新连接并初始化通道)，一个分发线程组(用于IO事件的处理)
+        // 一个主线程组(用于监听新连接并初始化通道)，一个分发线程组(用于IO事件的处理)
         EventLoopGroup mainGroup = new NioEventLoopGroup(1);
         EventLoopGroup subGroup = new NioEventLoopGroup();
         ServerBootstrap sb = new ServerBootstrap();
@@ -22,6 +22,21 @@ public class App {
                     .childHandler(new WsChannelInitializer());
             // 绑定88端口，Websocket服务器的端口就是这个
             ChannelFuture future = sb.bind(88).sync();
+
+            // 启动新线程发送消息
+            Thread sendThread = new Thread(() -> {
+                try {
+                    while (true) {
+                        Thread.sleep(1000); // 每隔1秒发送一次消息
+                        WsServerHandler.sendToAll("Hello, world!"); // 发送消息
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            sendThread.start();
+
+
             // 一直阻塞直到服务器关闭
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {

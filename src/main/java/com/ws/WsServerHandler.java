@@ -18,7 +18,13 @@ public class WsServerHandler extends SimpleChannelInboundHandler<TextWebSocketFr
     /**
      * 用于记录和管理所有客户端的channel
      */
-    private final ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    private final static ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+
+    // 将消息发送给所有连接的客户端
+    public static void sendToAll(String message) {
+        TextWebSocketFrame textFrame = new TextWebSocketFrame(message);
+        clients.writeAndFlush(textFrame);
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
