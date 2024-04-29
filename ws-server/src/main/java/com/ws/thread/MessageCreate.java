@@ -30,7 +30,7 @@ public class MessageCreate {
                     Thread.sleep(10 * 1000); // 每隔10秒发送300条消息
                     log.info("----开始创建消息----");
                     log.info("----当前通道数为---->{}",clients.size());
-                    for (int i = 0; i < 300; i++) {
+                    for (int i = 0; i < 100; i++) {
                         clients.forEach(channel -> {
                             try {
                                 String message= RandomUtil.randomString(500000);

@@ -27,7 +27,8 @@ public class WsChannelInitializer extends ChannelInitializer {
         // 该处理器为运行websocket服务器承担了所有繁重的工作
         // 它会负责websocket的握手以及处理控制帧
         // websocket的数据传输都是以frames进行的
-        pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
+        pipeline.addLast(new WebSocketServerProtocolHandler("/ws", "WebSocket",
+                true, 65536 * 10));
         // 自定义的处理器
         pipeline.addLast(new WsServerHandler());
     }

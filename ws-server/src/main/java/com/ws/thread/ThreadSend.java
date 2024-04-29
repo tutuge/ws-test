@@ -49,7 +49,7 @@ public class ThreadSend {
                                     log.warn("4 当前channel还是不可写，当前消息队列内还有 {} 条数据", pendingMessages.size());
                                     pendingMessages.add(poll);
                                     //不可写的情况下暂停200毫秒
-                                    Thread.sleep(1000);
+                                    Thread.sleep(200);
                                 }
                             } else {
                                 pendingMessages.add(poll);
