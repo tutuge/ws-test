@@ -1,5 +1,6 @@
 package com.ws;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -18,13 +19,7 @@ public class WsServerHandler extends SimpleChannelInboundHandler<TextWebSocketFr
     /**
      * 用于记录和管理所有客户端的channel
      */
-    private final static ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-
-    // 将消息发送给所有连接的客户端
-    public static void sendToAll(String message) {
-        TextWebSocketFrame textFrame = new TextWebSocketFrame(message);
-        clients.writeAndFlush(textFrame);
-    }
+    public final static ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
@@ -34,7 +29,14 @@ public class WsServerHandler extends SimpleChannelInboundHandler<TextWebSocketFr
         log.info("收到的文本消息：[{}]", text);
         // 在这里可以判断消息类型(比如初始化连接、消息在客户端间传输等)
         // 然后可以将客户端Channel与对应的唯一标识用Map关联起来，就可以做定向推送，而不是广播
-        SocketAddress socketAddress = ctx.channel().remoteAddress();
+        Channel channel = ctx.channel();
+        soutHostPort(channel);
+        // 写回客户端，这里是广播
+        clients.writeAndFlush(new TextWebSocketFrame("服务器收到消息: " + text));
+    }
+
+    private void soutHostPort(Channel channel) {
+        SocketAddress socketAddress = channel.remoteAddress();
         System.out.println("socketAddress:" + socketAddress);
         if (socketAddress instanceof InetSocketAddress) {
             InetSocketAddress socketAddress1 = (InetSocketAddress) socketAddress;
@@ -42,8 +44,6 @@ public class WsServerHandler extends SimpleChannelInboundHandler<TextWebSocketFr
             int port = socketAddress1.getPort();
             System.out.println(hostName + "--" + port);
         }
-        // 写回客户端，这里是广播
-        clients.writeAndFlush(new TextWebSocketFrame("服务器收到消息: " + text));
     }
 
     /**
@@ -55,7 +55,9 @@ public class WsServerHandler extends SimpleChannelInboundHandler<TextWebSocketFr
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
         // 不能在这里做关联，因为这里不能接受客户端的消息，是没法绑定的
-        clients.add(ctx.channel());
+        Channel channel = ctx.channel();
+        soutHostPort(channel);
+        clients.add(channel);
     }
 
     /**
